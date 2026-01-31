@@ -1,0 +1,107 @@
+<div class="fbt-section">
+  <h2>Frequently Bought Together</h2>
+
+  <form id="fbt-form">
+    {% assign related_product = all_products["teak-wood-masala-box"] %}
+    <div class="fbt-item">
+      <label>
+        <input type="checkbox" class="fbt-check" value="{{ related_product.variants.first.id }}" data-price="{{ related_product.price | money_without_currency }}">
+        <strong>{{ related_product.title }}</strong> — {{ related_product.price | money }}
+      </label>
+    </div>
+
+    {% assign related_product = all_products["another-product-handle"] %}
+    <div class="fbt-item">
+      <label>
+        <input type="checkbox" class="fbt-check" value="{{ related_product.variants.first.id }}" data-price="{{ related_product.price | money_without_currency }}">
+        <strong>{{ related_product.title }}</strong> — {{ related_product.price | money }}
+      </label>
+    </div>
+
+    <div class="fbt-total">Total: ₹<span id="fbt-total">0.00</span></div>
+    <button type="submit" class="btn">Add Selected to Cart</button>
+  </form>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const form = document.getElementById("fbt-form");
+  const checkboxes = document.querySelectorAll(".fbt-check");
+  const totalDisplay = document.getElementById("fbt-total");
+
+  function updateTotal() {
+    let total = 0;
+    checkboxes.forEach(cb => {
+      if (cb.checked) {
+        total += parseFloat(cb.dataset.price || "0");
+      }
+    });
+    totalDisplay.textContent = total.toFixed(2);
+  }
+
+  checkboxes.forEach(cb => cb.addEventListener("change", updateTotal));
+  updateTotal();
+
+  form.addEventListener("submit", function(e) {
+    e.preventDefault();
+    let items = [];
+    checkboxes.forEach(cb => {
+      if (cb.checked) {
+        items.push({ id: cb.value, quantity: 1 });
+      }
+    });
+
+    if (items.length > 0) {
+      fetch('/cart/add.js', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ items })
+      })
+      .then(res => res.json())
+      .then(data => {
+        alert("Selected products added to cart!");
+        window.location.href = "/cart";
+      })
+      .catch(err => console.error(err));
+    } else {
+      alert("Please select at least one product.");
+    }
+  });
+});
+</script>
+
+<style>
+.fbt-section {
+  margin-top: 3rem;
+  padding: 2rem;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+}
+.fbt-item {
+  margin-bottom: 1rem;
+  font-size: 1rem;
+}
+.fbt-check {
+  accent-color: #3EB489;
+  margin-right: 0.5rem;
+}
+.fbt-total {
+  font-weight: bold;
+  margin-top: 1rem;
+  font-size: 1.1rem;
+  color: #3EB489;
+}
+.btn {
+  background-color: #3EB489;
+  color: #fff;
+  padding: 0.6rem 1.2rem;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 1rem;
+}
+.btn:hover {
+  background-color: #2e8b75;
+}
+</style>
